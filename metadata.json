@@ -1,0 +1,5 @@
+{
+  "name": "NovaProject Orchestrator",
+  "description": "A PMBOK-7 aligned project decision support system. It orchestrates specialized AI agents to analyze project scenarios, identifying trade-offs, risks, and EVV metrics based on value, quality, adaptation, planning, and delivery.",
+  "requestFramePermissions": []
+}

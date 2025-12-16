@@ -1,3 +1,4 @@
+
 export interface PrincipleScores {
   stewardship: number;
   team: number;
@@ -20,24 +21,21 @@ export interface DomainAnalysis {
   };
 }
 
-// Structure retournée par le workflow n8n (noeud "Claude PMBOK Agent")
 export interface OrchestratorResponse {
   decision: "APPROVED" | "REJECTED" | "CONDITIONAL";
   overall_score: number;
   principle_scores: PrincipleScores;
   domain_analysis: DomainAnalysis;
   
-  // Nouveaux champs alignés sur le workflow n8n
-  action: string; // Remplace decision_rationale
-  conditions: string[]; // Remplace conditions_if_any
-  next_steps: string[]; // Remplace recommended_actions
-  risks: string[]; // Remplace key_risks
+  action: string;
+  conditions: string[];
+  next_steps: string[];
+  risks: string[];
   
-  estimated_impact: Record<string, any>; // Nouveau
-  monitoring_kpis: string[]; // Remplace evv_metrics_to_track
-  success_criteria: string[]; // Nouveau
+  estimated_impact: Record<string, any>;
+  monitoring_kpis: string[];
+  success_criteria: string[];
   
-  // Métadonnées d'exécution
   execution_time_ms?: number;
   cost_usd?: number;
 }
@@ -45,8 +43,15 @@ export interface OrchestratorResponse {
 export interface Project {
   id: string;
   name: string;
-  status: string;
+  client: string;
+  status: 'On Track' | 'At Risk' | 'Completed' | 'Planning';
+  priority: 'Low' | 'Medium' | 'High';
+  progress: number;
+  deadline: string;
+  budget_spent: number;
+  budget_total: number;
   created_at: string;
+  description?: string;
 }
 
 export type AnalysisStatus = 'idle' | 'initializing' | 'analyzing' | 'complete' | 'error';

@@ -1,94 +1,139 @@
 import React, { useState, useEffect } from 'react';
 import { initializeProject } from './services/n8nService';
-import { Project, AnalysisStatus } from './types';
+import { Project, AnalysisStatus, OrchestratorResponse } from './types';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { Dashboard } from './components/Dashboard';
-import { TeamView } from './components/TeamView';
+import { ProjectList } from './components/ProjectList';
+import { ProjectDetail } from './components/ProjectDetail';
+import { DecisionRequest } from './components/DecisionRequest';
+import { DecisionOutcome } from './components/DecisionOutcome';
 import { SettingsView } from './components/SettingsView';
 import { HistoryView } from './components/HistoryView';
+import { NewProject } from './components/NewProject';
 import { Construction } from 'lucide-react';
 
 const App: React.FC = () => {
   // Global State
   const [status, setStatus] = useState<AnalysisStatus>('initializing');
-  const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState('projects');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // New Navigation State
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [decisionResult, setDecisionResult] = useState<OrchestratorResponse | null>(null);
 
-  // Initialization Logic only
   useEffect(() => {
-    const init = async () => {
-      try {
-        const project = await initializeProject();
-        setCurrentProject(project);
-        setStatus('idle');
-      } catch (err) {
-        console.error("Initialization failed, defaulting to offline mode.");
-        setStatus('error'); // Will trigger mock mode in services
-      }
-    };
-    init();
+    // Just initialize generic session check
+    initializeProject().then(() => setStatus('idle'));
   }, []);
 
   // View Routing Logic
   const renderView = () => {
     switch (currentView) {
-      case 'dashboard':
+      case 'projects':
         return (
-          <Dashboard 
-            project={currentProject} 
-            globalStatus={status} 
-            setGlobalStatus={setStatus} 
+          <ProjectList 
+            onSelectProject={(p) => {
+              setSelectedProject(p);
+              setCurrentView('project_detail');
+            }}
+            onNewProject={() => setCurrentView('new_project')}
           />
         );
-      case 'team':
-        return <TeamView />;
+      
+      case 'new_project':
+        return (
+          <NewProject 
+            onClose={() => setCurrentView('projects')}
+            onSave={(data) => {
+              console.log("Saving new project", data);
+              // In a real app, we would add it to the list here
+              setCurrentView('projects');
+            }}
+          />
+        );
+        
+      case 'project_detail':
+        if (!selectedProject) return <ProjectList onSelectProject={setSelectedProject} onNewProject={() => setCurrentView('new_project')} />;
+        return (
+          <ProjectDetail 
+            project={selectedProject}
+            onBack={() => setCurrentView('projects')}
+            onRequestDecision={() => setCurrentView('decision_request')}
+            onViewHistory={() => setCurrentView('history')}
+          />
+        );
+
+      case 'decision_request':
+        if (!selectedProject) return null;
+        return (
+          <DecisionRequest 
+            project={selectedProject}
+            onBack={() => setCurrentView('project_detail')}
+            onComplete={(result) => {
+              setDecisionResult(result);
+              setCurrentView('decision_outcome');
+            }}
+          />
+        );
+
+      case 'decision_outcome':
+        if (!selectedProject || !decisionResult) return null;
+        return (
+          <DecisionOutcome 
+            project={selectedProject}
+            result={decisionResult}
+            onBack={() => setCurrentView('project_detail')}
+          />
+        );
+
       case 'history':
-        return <HistoryView />;
+        return (
+          <HistoryView 
+            project={selectedProject}
+            onBack={() => selectedProject ? setCurrentView('project_detail') : setCurrentView('projects')}
+          />
+        );
+
       case 'settings':
-        return <SettingsView project={currentProject} />;
-      case 'analytics':
+        return <SettingsView project={selectedProject} />;
+        
+      default:
         return (
           <div className="flex flex-col items-center justify-center h-[60vh] text-slate-500 animate-fadeIn">
-            <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <Construction className="w-8 h-8 text-slate-600" />
-            </div>
-            <h3 className="text-lg font-medium text-slate-300">Module Under Construction</h3>
-            <p className="max-w-md text-center mt-2 text-sm">
-              The EVV Analytics module is being connected to the n8n backend. Please check back later.
-            </p>
+            <Construction className="w-12 h-12 mb-4 opacity-50" />
+            <p>View "{currentView}" under construction</p>
           </div>
         );
-      default:
-        return <Dashboard project={currentProject} globalStatus={status} setGlobalStatus={setStatus} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-100 flex font-inter overflow-hidden">
       
-      {/* 1. Autonomous Navigation Component with Mobile Logic */}
       <Sidebar 
         currentView={currentView} 
-        onNavigate={setCurrentView} 
+        onNavigate={(view) => {
+          setCurrentView(view);
+          if (view === 'projects') {
+             setSelectedProject(null);
+             setDecisionResult(null);
+          }
+        }} 
         status={status} 
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      {/* Main Layout Area */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#0f172a]">
         
-        {/* 2. Autonomous Header Component with Menu Toggle */}
         <Header 
-          project={currentProject} 
+          project={selectedProject} 
           status={status} 
           onMenuClick={() => setIsSidebarOpen(true)}
         />
 
-        {/* 3. Scrollable Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+        <main className="flex-1 overflow-y-auto px-4 pt-2 pb-6 scroll-smooth">
           {renderView()}
         </main>
       </div>

@@ -1,13 +1,13 @@
+
 import React from 'react';
 import { 
-  LayoutDashboard, 
-  History, 
-  Activity, 
-  BrainCircuit, 
-  ShieldCheck, 
-  Server,
-  Users,
+  LayoutGrid, 
+  FolderOpen,
+  CheckSquare,
   Settings,
+  BrainCircuit,
+  Server,
+  ShieldCheck,
   X
 } from 'lucide-react';
 import { AnalysisStatus } from '../types';
@@ -22,19 +22,21 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, status, isOpen, onClose }) => {
   const navItems = [
-    { id: 'dashboard', label: 'Orchestrator', icon: LayoutDashboard },
-    { id: 'team', label: 'Équipe Virtuelle', icon: Users },
-    { id: 'history', label: 'Historique', icon: History },
-    { id: 'analytics', label: 'Analytics EVV', icon: Activity },
+    { id: 'projects', label: 'Home', icon: LayoutGrid },
+    { id: 'projects_list', label: 'Projects', icon: FolderOpen },
+    { id: 'tasks', label: 'Tasks', icon: CheckSquare },
   ];
 
   const bottomItems = [
-    { id: 'settings', label: 'Paramètres', icon: Settings },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   const handleNavClick = (viewId: string) => {
-    onNavigate(viewId);
-    onClose(); // Ferme le menu sur mobile après un clic
+    // Mapping internal IDs to view states
+    if (viewId === 'projects' || viewId === 'projects_list') onNavigate('projects');
+    else onNavigate(viewId);
+    
+    onClose();
   };
 
   return (
@@ -58,11 +60,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, statu
           
           {/* Header Sidebar */}
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavClick('dashboard')}>
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavClick('projects')}>
+              <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/30">
                 <BrainCircuit className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-white">Nova<span className="text-indigo-400">Project</span></h1>
+              <h1 className="text-xl font-bold tracking-tight text-white">Nova<span className="text-cyan-400">App</span></h1>
             </div>
             {/* Close Button Mobile */}
             <button onClick={onClose} className="md:hidden text-slate-400 hover:text-white">
@@ -71,21 +73,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, statu
           </div>
           
           {/* Menu Principal */}
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">Espace de Travail</div>
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">Menu</div>
           <nav className="space-y-1 mb-8">
             {navItems.map((item) => {
-              const isActive = currentView === item.id;
+              const isActive = (currentView === 'projects' && (item.id === 'projects' || item.id === 'projects_list'));
               return (
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                     isActive 
-                      ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-sm' 
+                      ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-sm' 
                       : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-transparent'
                   }`}
                 >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-100'}`} />
+                  <item.icon className={`w-5 h-5 ${isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-100'}`} />
                   <span className="font-medium">{item.label}</span>
                 </button>
               );
@@ -93,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, statu
           </nav>
 
           {/* Menu Configuration */}
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">Configuration</div>
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">General</div>
           <nav className="space-y-1">
             {bottomItems.map((item) => {
                const isActive = currentView === item.id;
@@ -103,11 +105,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, statu
                   onClick={() => handleNavClick(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                     isActive 
-                      ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-sm' 
+                      ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-sm' 
                       : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800 border border-transparent'
                   }`}
                 >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-100'}`} />
+                  <item.icon className={`w-5 h-5 ${isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-100'}`} />
                   <span className="font-medium">{item.label}</span>
                 </button>
                );
@@ -120,12 +122,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, statu
               <div className="flex items-center gap-2 text-slate-500 text-xs bg-slate-950 p-2 rounded border border-slate-800">
                 <Server className="w-3 h-3" />
                 <span className="truncate">
-                  n8n: {status === 'initializing' ? 'Connexion...' : status === 'error' ? 'Offline (Mock)' : 'En ligne'}
+                  n8n: {status === 'initializing' ? 'Connecting...' : status === 'error' ? 'Offline' : 'Online'}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-slate-500 text-xs px-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                <span>PMBOK-7 Compliant</span>
+                <span>v2.0.4 • Mockup UI</span>
               </div>
             </div>
           </div>

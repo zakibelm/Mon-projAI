@@ -28,6 +28,22 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
     }
   };
 
+  const renderAnalysisMetric = (key: string, value: any) => {
+     if (typeof value === 'object' && value !== null) {
+        return (
+           <div className="pl-4 border-l border-slate-700 space-y-1 mt-1">
+             {Object.entries(value).map(([k, v]) => (
+                <div key={k} className="flex justify-between text-xs text-slate-400">
+                   <span className="capitalize">{k.replace(/_/g, ' ')}:</span>
+                   <span className="font-mono text-slate-300">{String(v)}</span>
+                </div>
+             ))}
+           </div>
+        );
+     }
+     return String(value);
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header: Decision & Score */}
@@ -35,6 +51,7 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
         <div className={`md:col-span-2 rounded-xl p-6 border-l-4 shadow-lg flex flex-col justify-center ${getDecisionColor(data.decision)} border-slate-800 bg-slate-900`}>
           <div className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">Final Decision</div>
           <div className="text-4xl font-bold">{data.decision?.toUpperCase() || 'UNKNOWN'}</div>
+          {data.confidence_level && <div className="text-sm mt-2 opacity-80">Confidence: {data.confidence_level}</div>}
         </div>
         
         <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden">
@@ -74,6 +91,16 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
         <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">
           {data.action}
         </p>
+        
+        {data.principle_justifications && (
+           <div className="mt-4 grid gap-3 md:grid-cols-2">
+             {Object.entries(data.principle_justifications).slice(0, 4).map(([key, val]) => (
+                <div key={key} className="bg-slate-950/50 p-3 rounded text-xs">
+                   <span className="font-bold text-slate-400 uppercase">{key}:</span> <span className="text-slate-300">{val}</span>
+                </div>
+             ))}
+           </div>
+        )}
       </div>
 
       {/* Principles Visualization */}
@@ -96,7 +123,7 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
                   Score: {analysis.score}
                 </span>
               </div>
-              <p className="text-sm text-slate-400">{analysis.insight}</p>
+              <p className="text-sm text-slate-400">{analysis.insights || analysis.insight}</p>
             </div>
           ))}
         </div>
@@ -105,7 +132,7 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
       {/* 3 Columns: Impact, Risks, Next Steps */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Estimated Impact (was Trade-offs) */}
+        {/* Estimated Impact */}
         <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
           <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
             <Scale className="w-5 h-5 text-orange-400" />
@@ -113,9 +140,12 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
           </h3>
           <ul className="space-y-3">
             {data.estimated_impact && Object.entries(data.estimated_impact).map(([key, val]: [string, any], idx) => (
-              <li key={idx} className="text-sm text-slate-300 flex items-start gap-3 bg-slate-800/30 p-2 rounded">
-                <span className="text-orange-500 mt-0.5">•</span> 
-                <span className="capitalize font-medium text-slate-400">{key.replace(/_/g, ' ')}:</span> {val}
+              <li key={idx} className="text-sm text-slate-300 bg-slate-800/30 p-2 rounded">
+                <div className="flex items-center gap-2 mb-1">
+                   <span className="text-orange-500">•</span> 
+                   <span className="capitalize font-medium text-slate-400">{key.replace(/_/g, ' ')}:</span>
+                </div>
+                {renderAnalysisMetric(key, val)}
               </li>
             ))}
           </ul>
@@ -128,26 +158,52 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
             Critical Risks
           </h3>
           <ul className="space-y-3">
-            {data.risks?.map((risk, idx) => (
-              <li key={idx} className="text-sm text-slate-300 flex items-start gap-3 bg-slate-800/30 p-2 rounded">
-                <span className="text-red-500 mt-0.5">•</span> {risk}
-              </li>
-            ))}
+            {data.risks?.map((risk: any, idx) => {
+              const riskText = typeof risk === 'string' ? risk : risk.risk;
+              const mitigation = typeof risk === 'object' ? risk.mitigation : null;
+              
+              return (
+                <li key={idx} className="text-sm text-slate-300 bg-slate-800/30 p-2 rounded">
+                  <div className="flex items-start gap-2">
+                    <span className="text-red-500 mt-0.5">•</span> 
+                    <span>{riskText}</span>
+                  </div>
+                  {mitigation && (
+                    <div className="mt-1 pl-4 text-xs text-slate-500 italic">
+                      Fix: {mitigation}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
-        {/* Next Steps (was Recommended Actions) */}
+        {/* Next Steps */}
         <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
           <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
             <Zap className="w-5 h-5 text-yellow-400" />
             Next Steps
           </h3>
           <ul className="space-y-3">
-            {data.next_steps?.map((step, idx) => (
-              <li key={idx} className="text-sm text-slate-300 flex items-start gap-3 bg-slate-800/30 p-2 rounded">
-                <span className="text-yellow-500 mt-0.5">→</span> {step}
-              </li>
-            ))}
+            {data.next_steps?.map((step: any, idx) => {
+              const stepText = typeof step === 'string' ? step : step.action;
+              const deadline = typeof step === 'object' ? step.deadline : null;
+              
+              return (
+                <li key={idx} className="text-sm text-slate-300 bg-slate-800/30 p-2 rounded">
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-500 mt-0.5">→</span> 
+                    <span>{stepText}</span>
+                  </div>
+                  {deadline && (
+                    <div className="mt-1 pl-4 text-xs text-slate-500">
+                      Due: {deadline}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
@@ -184,6 +240,40 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
           ))}
         </div>
       </div>
+
+      {/* Alternatives Considered (New) */}
+      {data.alternatives_considered && data.alternatives_considered.length > 0 && (
+        <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
+           <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+             <Scale className="w-5 h-5 text-slate-400" />
+             Alternatives Considered
+           </h3>
+           <div className="space-y-4">
+             {data.alternatives_considered.map((alt, idx) => (
+                <div key={idx} className="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                   <h4 className="font-bold text-slate-300 mb-2">{alt.alternative}</h4>
+                   <div className="grid md:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <span className="text-green-400 font-bold">Pros:</span>
+                        <ul className="list-disc pl-4 text-slate-400 mt-1">
+                           {alt.pros.map((p, i) => <li key={i}>{p}</li>)}
+                        </ul>
+                      </div>
+                      <div>
+                        <span className="text-red-400 font-bold">Cons:</span>
+                         <ul className="list-disc pl-4 text-slate-400 mt-1">
+                           {alt.cons.map((p, i) => <li key={i}>{p}</li>)}
+                        </ul>
+                      </div>
+                   </div>
+                   <div className="mt-3 text-xs text-slate-500 italic border-t border-slate-800 pt-2">
+                      Why not chosen: {alt.why_not_chosen}
+                   </div>
+                </div>
+             ))}
+           </div>
+        </div>
+      )}
     </div>
   );
 };

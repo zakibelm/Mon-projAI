@@ -1,4 +1,3 @@
-
 export interface PrincipleScores {
   stewardship: number;
   team: number;
@@ -17,24 +16,34 @@ export interface PrincipleScores {
 export interface DomainAnalysis {
   [key: string]: {
     score: number;
-    insight: string;
+    insights?: string;
+    insight?: string; // Fallback for backward compatibility
+    risks?: string[];
+    recommendations?: string[];
   };
 }
 
 export interface OrchestratorResponse {
   decision: "APPROVED" | "REJECTED" | "CONDITIONAL";
   overall_score: number;
+  confidence_level?: string;
+  
   principle_scores: PrincipleScores;
+  principle_justifications?: Record<string, string>;
+  
   domain_analysis: DomainAnalysis;
   
   action: string;
   conditions: string[];
-  next_steps: string[];
-  risks: string[];
+  
+  next_steps: Array<{ action: string; deadline?: string; priority?: string } | string>;
+  risks: Array<{ risk: string; probability?: string; impact?: string; mitigation?: string; contingency?: string; score?: number } | string>;
   
   estimated_impact: Record<string, any>;
   monitoring_kpis: string[];
   success_criteria: string[];
+  
+  alternatives_considered?: Array<{ alternative: string; pros: string[]; cons: string[]; why_not_chosen: string }>;
   
   execution_time_ms?: number;
   cost_usd?: number;

@@ -8,12 +8,13 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
 
   const ai = new GoogleGenAI({ apiKey });
 
-  // Schema definition for strictly typed JSON output matching the new prompt
+  // Schema definition for strictly typed JSON output matching the new Mega-Prompt
   const responseSchema = {
     type: Type.OBJECT,
     properties: {
       decision: { type: Type.STRING, enum: ["APPROVED", "REJECTED", "CONDITIONAL"] },
       overall_score: { type: Type.NUMBER },
+      confidence_level: { type: Type.STRING },
       principle_scores: {
         type: Type.OBJECT,
         properties: {
@@ -36,31 +37,53 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
           "adaptability", "change"
         ]
       },
-      domain_analysis: {
-        type: Type.OBJECT,
-        description: "Analysis of relevant PMBOK domains. Keys are domain names, values are objects with score and insight.",
-        // We leave properties open-ended or loosely defined as the prompt says "Analyse les domaines pertinents"
-      },
-      decision_rationale: { type: Type.STRING },
-      key_tradeoffs: { 
+      principle_justifications: { type: Type.OBJECT },
+      domain_analysis: { type: Type.OBJECT },
+      action: { type: Type.STRING },
+      conditions: { type: Type.ARRAY, items: { type: Type.STRING } },
+      
+      next_steps: { 
         type: Type.ARRAY, 
-        items: { type: Type.STRING } 
+        items: { 
+          type: Type.OBJECT,
+          properties: {
+             action: { type: Type.STRING },
+             deadline: { type: Type.STRING },
+             priority: { type: Type.STRING }
+          }
+        } 
       },
-      key_risks: { 
+      
+      risks: { 
         type: Type.ARRAY, 
-        items: { type: Type.STRING } 
+        items: {
+          type: Type.OBJECT,
+          properties: {
+             risk: { type: Type.STRING },
+             probability: { type: Type.STRING },
+             impact: { type: Type.STRING },
+             mitigation: { type: Type.STRING },
+             contingency: { type: Type.STRING },
+             score: { type: Type.NUMBER }
+          }
+        }
       },
-      conditions_if_any: { 
-        type: Type.ARRAY, 
-        items: { type: Type.STRING } 
-      },
-      recommended_actions: { 
-        type: Type.ARRAY, 
-        items: { type: Type.STRING } 
-      },
-      evv_metrics_to_track: { 
-        type: Type.ARRAY, 
-        items: { type: Type.STRING } 
+      
+      estimated_impact: { type: Type.OBJECT },
+      monitoring_kpis: { type: Type.ARRAY, items: { type: Type.STRING } },
+      success_criteria: { type: Type.ARRAY, items: { type: Type.STRING } },
+      
+      alternatives_considered: { 
+        type: Type.ARRAY,
+        items: {
+           type: Type.OBJECT,
+           properties: {
+              alternative: { type: Type.STRING },
+              pros: { type: Type.ARRAY, items: { type: Type.STRING } },
+              cons: { type: Type.ARRAY, items: { type: Type.STRING } },
+              why_not_chosen: { type: Type.STRING }
+           }
+        }
       }
     },
     required: [
@@ -68,11 +91,13 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
       "overall_score",
       "principle_scores",
       "domain_analysis",
-      "decision_rationale",
-      "key_tradeoffs",
-      "key_risks",
-      "recommended_actions",
-      "evv_metrics_to_track"
+      "action",
+      "conditions",
+      "next_steps",
+      "risks",
+      "estimated_impact",
+      "monitoring_kpis",
+      "success_criteria"
     ]
   };
 

@@ -133,12 +133,15 @@ export const DecisionOutcome: React.FC<DecisionOutcomeProps> = ({ project, resul
       <div className="bg-cyan-900/10 rounded-2xl p-6 border border-cyan-500/20 mb-8">
          <h3 className="text-xs font-bold text-cyan-500 uppercase tracking-wider mb-4">Recommended Adjustments</h3>
          <ul className="space-y-2">
-            {result.next_steps.slice(0, 3).map((step, idx) => (
-               <li key={idx} className="flex items-start gap-2 text-xs text-slate-300">
-                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 mt-1.5 flex-shrink-0"></div>
-                  {step}
-               </li>
-            ))}
+            {result.next_steps.slice(0, 3).map((step, idx) => {
+               const stepText = typeof step === 'string' ? step : step.action;
+               return (
+                  <li key={idx} className="flex items-start gap-2 text-xs text-slate-300">
+                     <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 mt-1.5 flex-shrink-0"></div>
+                     {stepText}
+                  </li>
+               );
+            })}
          </ul>
       </div>
 

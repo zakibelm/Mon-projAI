@@ -11,7 +11,8 @@ import {
   FileText,
   Activity,
   Clock,
-  DollarSign
+  DollarSign,
+  Compass
 } from 'lucide-react';
 
 interface DecisionDisplayProps {
@@ -106,6 +107,35 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
       {/* Principles Visualization */}
       {data.principle_scores && <PrincipleVisualizer scores={data.principle_scores} />}
 
+      {/* Methodology Recommendation (New in V3.0) */}
+      {data.methodology_recommendation && (
+        <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
+          <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+            <Compass className="w-5 h-5 text-cyan-400" />
+            Methodology Recommendation
+          </h3>
+          <div className="bg-cyan-950/30 border border-cyan-500/30 rounded-lg p-4 mb-4">
+             <div className="flex justify-between items-start">
+               <span className="text-xl font-bold text-cyan-400">{data.methodology_recommendation.primary.replace(/_/g, ' ')}</span>
+               <span className="text-xs px-2 py-1 bg-cyan-900 rounded text-cyan-200 border border-cyan-700">Confidence: {data.methodology_recommendation.confidence}</span>
+             </div>
+             <p className="text-sm text-slate-300 mt-2">{data.methodology_recommendation.rationale}</p>
+          </div>
+          {data.methodology_recommendation.implementation_details && (
+            <div className="grid md:grid-cols-2 gap-4 text-xs text-slate-400">
+               <div className="bg-slate-950 p-3 rounded border border-slate-800">
+                  <span className="block font-bold text-slate-300 mb-1">Ceremonies</span>
+                  {JSON.stringify(data.methodology_recommendation.implementation_details.ceremonies, null, 2)}
+               </div>
+               <div className="bg-slate-950 p-3 rounded border border-slate-800">
+                  <span className="block font-bold text-slate-300 mb-1">Artifacts</span>
+                  {JSON.stringify(data.methodology_recommendation.implementation_details.artifacts, null, 2)}
+               </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Domain Analysis */}
       <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
         <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
@@ -161,6 +191,7 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
             {data.risks?.map((risk: any, idx) => {
               const riskText = typeof risk === 'string' ? risk : risk.risk;
               const mitigation = typeof risk === 'object' ? risk.mitigation : null;
+              const probability = typeof risk === 'object' ? risk.probability : null;
               
               return (
                 <li key={idx} className="text-sm text-slate-300 bg-slate-800/30 p-2 rounded">
@@ -171,6 +202,11 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
                   {mitigation && (
                     <div className="mt-1 pl-4 text-xs text-slate-500 italic">
                       Fix: {mitigation}
+                    </div>
+                  )}
+                  {probability && (
+                    <div className="mt-1 pl-4 text-[10px] text-slate-600 uppercase font-bold">
+                       Prob: {probability}
                     </div>
                   )}
                 </li>
@@ -189,6 +225,7 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
             {data.next_steps?.map((step: any, idx) => {
               const stepText = typeof step === 'string' ? step : step.action;
               const deadline = typeof step === 'object' ? step.deadline : null;
+              const owner = typeof step === 'object' ? step.owner : null;
               
               return (
                 <li key={idx} className="text-sm text-slate-300 bg-slate-800/30 p-2 rounded">
@@ -196,9 +233,10 @@ export const DecisionDisplay: React.FC<DecisionDisplayProps> = ({ data }) => {
                     <span className="text-yellow-500 mt-0.5">→</span> 
                     <span>{stepText}</span>
                   </div>
-                  {deadline && (
-                    <div className="mt-1 pl-4 text-xs text-slate-500">
-                      Due: {deadline}
+                  {(deadline || owner) && (
+                    <div className="mt-1 pl-4 text-xs text-slate-500 flex justify-between">
+                      {owner && <span>Owner: {owner}</span>}
+                      {deadline && <span>Due: {deadline}</span>}
                     </div>
                   )}
                 </li>

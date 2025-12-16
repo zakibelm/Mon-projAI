@@ -23,6 +23,32 @@ export interface DomainAnalysis {
   };
 }
 
+export interface NextStep {
+  action: string;
+  owner?: string;
+  deadline?: string;
+  priority?: string;
+}
+
+export interface Risk {
+  risk: string;
+  probability?: string;
+  impact?: string;
+  mitigation?: string;
+  contingency?: string;
+  score?: number;
+  owner?: string;
+}
+
+export interface MethodologyRecommendation {
+  primary: string;
+  rationale: string;
+  confidence: string;
+  implementation_details?: Record<string, any>;
+  risks_methodology?: Array<{ risk: string; mitigation: string }>;
+  alternative?: string;
+}
+
 export interface OrchestratorResponse {
   decision: "APPROVED" | "REJECTED" | "CONDITIONAL";
   overall_score: number;
@@ -32,12 +58,13 @@ export interface OrchestratorResponse {
   principle_justifications?: Record<string, string>;
   
   domain_analysis: DomainAnalysis;
+  methodology_recommendation?: MethodologyRecommendation;
   
   action: string;
   conditions: string[];
   
-  next_steps: Array<{ action: string; deadline?: string; priority?: string } | string>;
-  risks: Array<{ risk: string; probability?: string; impact?: string; mitigation?: string; contingency?: string; score?: number } | string>;
+  next_steps: Array<NextStep | string>;
+  risks: Array<Risk | string>;
   
   estimated_impact: Record<string, any>;
   monitoring_kpis: string[];

@@ -8,7 +8,7 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
 
   const ai = new GoogleGenAI({ apiKey });
 
-  // Schema definition for strictly typed JSON output matching the new Mega-Prompt
+  // Schema definition for strictly typed JSON output matching the V3.0 Mega-Prompt
   const responseSchema = {
     type: Type.OBJECT,
     properties: {
@@ -39,6 +39,28 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
       },
       principle_justifications: { type: Type.OBJECT },
       domain_analysis: { type: Type.OBJECT },
+      
+      methodology_recommendation: {
+        type: Type.OBJECT,
+        properties: {
+          primary: { type: Type.STRING },
+          rationale: { type: Type.STRING },
+          confidence: { type: Type.STRING },
+          implementation_details: { type: Type.OBJECT },
+          risks_methodology: {
+             type: Type.ARRAY,
+             items: {
+               type: Type.OBJECT,
+               properties: {
+                 risk: { type: Type.STRING },
+                 mitigation: { type: Type.STRING }
+               }
+             }
+          }
+        },
+        required: ["primary", "rationale"]
+      },
+
       action: { type: Type.STRING },
       conditions: { type: Type.ARRAY, items: { type: Type.STRING } },
       
@@ -48,9 +70,11 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
           type: Type.OBJECT,
           properties: {
              action: { type: Type.STRING },
+             owner: { type: Type.STRING },
              deadline: { type: Type.STRING },
              priority: { type: Type.STRING }
-          }
+          },
+          required: ["action"]
         } 
       },
       
@@ -64,8 +88,10 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
              impact: { type: Type.STRING },
              mitigation: { type: Type.STRING },
              contingency: { type: Type.STRING },
-             score: { type: Type.NUMBER }
-          }
+             score: { type: Type.NUMBER },
+             owner: { type: Type.STRING }
+          },
+          required: ["risk"]
         }
       },
       

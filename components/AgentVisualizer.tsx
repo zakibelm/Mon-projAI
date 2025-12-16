@@ -1,50 +1,50 @@
 import React from 'react';
-import { AGENTS } from '../constants';
+import { PrincipleScores } from '../types';
 
-interface AgentVisualizerProps {
-  activeAgents: string[];
+interface PrincipleVisualizerProps {
+  scores: PrincipleScores;
 }
 
-export const AgentVisualizer: React.FC<AgentVisualizerProps> = ({ activeAgents }) => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-      {AGENTS.map((agent) => {
-        // Normalize IDs to handle potential inconsistencies (e.g. 'agent_valeur' vs 'valeur')
-        const isActive = activeAgents.some(a => 
-          a.toLowerCase().includes(agent.id.replace('agent_', '')) || 
-          a.toLowerCase() === agent.id.toLowerCase()
-        );
+export const PrincipleVisualizer: React.FC<PrincipleVisualizerProps> = ({ scores }) => {
+  const principles = [
+    { key: 'stewardship', label: 'Stewardship', color: 'bg-green-500' },
+    { key: 'team', label: 'Team', color: 'bg-green-600' },
+    { key: 'stakeholders', label: 'Stakeholders', color: 'bg-emerald-500' },
+    { key: 'value', label: 'Value', color: 'bg-teal-500' },
+    { key: 'systems_thinking', label: 'Systems', color: 'bg-blue-500' },
+    { key: 'leadership', label: 'Leadership', color: 'bg-indigo-500' },
+    { key: 'tailoring', label: 'Tailoring', color: 'bg-violet-500' },
+    { key: 'quality', label: 'Quality', color: 'bg-purple-500' },
+    { key: 'complexity', label: 'Complexity', color: 'bg-fuchsia-500' },
+    { key: 'risk', label: 'Risk', color: 'bg-rose-500' },
+    { key: 'adaptability', label: 'Adaptability', color: 'bg-orange-500' },
+    { key: 'change', label: 'Change', color: 'bg-amber-500' },
+  ];
 
-        return (
-          <div
-            key={agent.id}
-            className={`
-              relative p-4 rounded-xl border transition-all duration-500
-              ${isActive 
-                ? `${agent.color.replace('bg-', 'border-')} bg-opacity-10 bg-white shadow-[0_0_15px_rgba(255,255,255,0.1)] scale-105` 
-                : 'border-slate-800 bg-slate-900 opacity-50 grayscale'
-              }
-            `}
-          >
-            {isActive && (
-              <div className={`absolute top-0 right-0 -mt-1 -mr-1 w-3 h-3 rounded-full ${agent.color} animate-pulse`} />
-            )}
-            <h3 className={`font-bold text-sm mb-1 ${isActive ? 'text-white' : 'text-slate-400'}`}>
-              {agent.name}
-            </h3>
-            <p className="text-xs text-slate-400 mb-2 min-h-[2.5rem]">
-              {agent.description}
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {agent.principles.map(p => (
-                <span key={p} className="text-[0.6rem] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
-                  {p}
-                </span>
-              ))}
+  return (
+    <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
+      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+        PMBOK 12 Principles Evaluation
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {principles.map((p) => {
+          const score = (scores as any)[p.key] || 0;
+          return (
+            <div key={p.key} className="relative group">
+               <div className="flex items-end justify-between mb-1">
+                 <span className="text-xs font-medium text-slate-300">{p.label}</span>
+                 <span className="text-xs font-mono text-slate-400">{score}%</span>
+               </div>
+               <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                 <div 
+                   className={`h-full rounded-full ${p.color} transition-all duration-1000`} 
+                   style={{ width: `${score}%` }}
+                 />
+               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };

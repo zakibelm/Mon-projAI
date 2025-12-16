@@ -8,42 +8,53 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
 
   const ai = new GoogleGenAI({ apiKey });
 
-  // Schema definition for strictly typed JSON output
+  // Schema definition for strictly typed JSON output matching the new prompt
   const responseSchema = {
     type: Type.OBJECT,
     properties: {
-      decision_summary: { type: Type.STRING },
-      context_analysis: { type: Type.STRING },
-      agents_consulted: { 
-        type: Type.ARRAY, 
-        items: { type: Type.STRING } 
-      },
-      key_tradeoffs: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            dimension: { type: Type.STRING },
-            decision: { type: Type.STRING },
-            justification: { type: Type.STRING }
-          }
-        }
-      },
-      final_decision: { type: Type.STRING },
-      estimated_impact: {
+      decision: { type: Type.STRING, enum: ["APPROVED", "REJECTED", "CONDITIONAL"] },
+      overall_score: { type: Type.NUMBER },
+      principle_scores: {
         type: Type.OBJECT,
         properties: {
-          timeline_days: { type: Type.NUMBER },
-          budget_usd: { type: Type.NUMBER },
-          quality_score: { type: Type.NUMBER },
-          business_value: { type: Type.STRING }
-        }
+          stewardship: { type: Type.NUMBER },
+          team: { type: Type.NUMBER },
+          stakeholders: { type: Type.NUMBER },
+          value: { type: Type.NUMBER },
+          systems_thinking: { type: Type.NUMBER },
+          leadership: { type: Type.NUMBER },
+          tailoring: { type: Type.NUMBER },
+          quality: { type: Type.NUMBER },
+          complexity: { type: Type.NUMBER },
+          risk: { type: Type.NUMBER },
+          adaptability: { type: Type.NUMBER },
+          change: { type: Type.NUMBER }
+        },
+        required: [
+          "stewardship", "team", "stakeholders", "value", "systems_thinking", 
+          "leadership", "tailoring", "quality", "complexity", "risk", 
+          "adaptability", "change"
+        ]
       },
-      identified_risks: { 
+      domain_analysis: {
+        type: Type.OBJECT,
+        description: "Analysis of relevant PMBOK domains. Keys are domain names, values are objects with score and insight.",
+        // We leave properties open-ended or loosely defined as the prompt says "Analyse les domaines pertinents"
+      },
+      decision_rationale: { type: Type.STRING },
+      key_tradeoffs: { 
         type: Type.ARRAY, 
         items: { type: Type.STRING } 
       },
-      success_criteria: { 
+      key_risks: { 
+        type: Type.ARRAY, 
+        items: { type: Type.STRING } 
+      },
+      conditions_if_any: { 
+        type: Type.ARRAY, 
+        items: { type: Type.STRING } 
+      },
+      recommended_actions: { 
         type: Type.ARRAY, 
         items: { type: Type.STRING } 
       },
@@ -53,14 +64,14 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
       }
     },
     required: [
-      "decision_summary",
-      "context_analysis",
-      "agents_consulted",
+      "decision",
+      "overall_score",
+      "principle_scores",
+      "domain_analysis",
+      "decision_rationale",
       "key_tradeoffs",
-      "final_decision",
-      "estimated_impact",
-      "identified_risks",
-      "success_criteria",
+      "key_risks",
+      "recommended_actions",
       "evv_metrics_to_track"
     ]
   };
@@ -73,7 +84,7 @@ export const analyzeScenario = async (scenario: string): Promise<OrchestratorRes
         systemInstruction: ORCHESTRATOR_SYSTEM_PROMPT,
         responseMimeType: "application/json",
         responseSchema: responseSchema,
-        temperature: 0.2, // Low temperature for deterministic, factual outputs
+        temperature: 0.2,
       }
     });
 
